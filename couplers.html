@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Couplers</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav>
+        <div class="judul">
+            <a href="#top">Couplers</a>
+        </div>
+        <ul>
+            <li>
+                <a href="#FeatureEnvy-section">Feature Envy</a>
+            </li>
+            <li>
+                <a href="#InappropriateIntimacy-section">Inappropriate Intimacy</a>
+            </li>
+            <li>
+                <a href="#MessageChains-section">Message Chains</a>
+            </li>
+            <li>
+                <a href="#MiddleMan-section">Middle Man</a>
+            </li>
+        </ul>
+    </nav>
+    <div class="isi">
+        <h1>Couplers</h1>
+        <p id="author">by Muhammad Iqbal (2602195054) and Fadhil Munzir (2602195054)</p>
+        <p>
+            Dalam software development, “coupler” adalah istilah yang digunakan untuk menggambarkan code smell yang terkait dengan coupling yang tinggi
+            antara modul atau komponen yang berbeda dalam suatu sistem. Coupling mengacu pada tingkat saling ketergantungan antara modul perangkat lunak.
+            Coupling yang tinggi berarti bahwa perubahan pada satu modul mungkin memerlukan perubahan pada banyak modul lainnya, membuat sistem menjadi
+            kurang fleksibel, lebih sulit dipelihara, dan lebih rentan terhadap kesalahan.
+        </p>
+        <p>
+            Berikut ini adalah smell-smell yang termasuk dalam smell “coupler”:
+        </p>
+        <div id="FeatureEnvy-section" class="section">
+            <div class="pembatas">
+                <hr>
+            </div>
+            <h2>Feature Envy</h2>
+            <h3>Penjelasan</h3>
+            <p>
+                Dalam kasus Feature Envy, method dalam satu class lebih sering mengakses method atau data dari modul lain daripada di modulnya sendiri.
+            </p>
+            <h3>Penanganan</h3>
+            <p>
+                Jika keseluruhan dari method mengakses banyak data dari suatu class lain, maka pindahkan method tersebut ke class yang diaksesnya.
+            </p>
+            <p>
+                Jika hanya bagian tertentu dari method yang banyak mengakses data class lain, maka lakukan extract method pada bagian tersebut, kemudian
+                pindahkan method tersebut ke class yang diaksesnya.
+            </p>
+            <p>
+                Jika method mengakses data-data dari beberapa class yang berbeda, maka pindahkan method ke class yang paling banyak diaksesnya, atau
+                jika memungkinkan, extract method menjadi beberapa method yang lebih kecil, kemudian move method ke class-class yang sesuai.
+            </p>
+            <h3>Contoh Kasus</h3>
+            <div class="code-block"><pre><code>
+public class ShoppingCart {
+    private List&lt;Item&gt; items;
+                       
+    public ShoppingCart() {
+        this.items = new ArrayList&lt;&gt;();
+    }
+                        
+    public void addItem(Item item) {
+        this.items.add(item);
+    }
+                        
+    public double calculateTotalPrice() {
+        double total = 0;
+        for (Item item : items) {
+            total += item.getPrice();
+        }
+        return total;
+    }
+}
+
+public class Customer {
+    private String name;
+    private ShoppingCart shoppingCart;
+
+    public Customer(String name) {
+        this.name = name;
+        this.shoppingCart = new ShoppingCart();
+    }
+
+    public double calculateTotalPrice() {
+        return shoppingCart.calculateTotalPrice();
+    }
+}
+
+public class Item {
+    private String name;
+    private double price;
+
+    public Item(String name, double price) {
+        this.name = name;
+        this.price = price;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+}
+
+// Main
+public class Main {
+    public static void main(String[] args) {
+        Customer customer = new Customer("John");
+        Item item1 = new Item("Laptop", 1000);
+        Item item2 = new Item("Mouse", 20);
+        customer.shoppingCart.addItem(item1);
+        customer.shoppingCart.addItem(item2);
+        double totalPrice = customer.calculateTotalPrice();
+        System.out.println("Total price: " + totalPrice);
+    }
+}                        
+            </code></pre></div>
+            <p>Pada contoh di atas, terdapat "Feature Envy" karena kelas Customer hanya memanggil metode calculateTotalPrice() dari kelas ShoppingCart.
+                Seharusnya perhitungan total harga seharusnya menjadi tanggung jawab Customer karena itu adalah informasi terkait pelanggan.</p>
+            <p>Code setelah di-refactor:</p>
+            <div class="code-block"><pre><code>
+public class ShoppingCart {
+    private List&lt;Item&gt; items;
+
+    public ShoppingCart() {
+        this.items = new ArrayList&lt;&gt;();
+    }
+
+    public void addItem(Item item) {
+        this.items.add(item);
+    }
+
+    public double calculateTotalPrice() {
+        double total = 0;
+        for (Item item : items) {
+            total += item.getPrice();
+        }
+        return total;
+    }
+}
+
+public class Customer {
+    private String name;
+    private ShoppingCart shoppingCart;
+
+    public Customer(String name) {
+        this.name = name;
+        this.shoppingCart = new ShoppingCart();
+    }
+
+    public void addItemToCart(Item item) {
+        this.shoppingCart.addItem(item);
+    }
+
+    public double calculateTotalPrice() {
+        return shoppingCart.calculateTotalPrice();
+    }
+}
+
+public class Item {
+    private String name;
+    private double price;
+
+    public Item(String name, double price) {
+        this.name = name;
+        this.price = price;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+}
+
+// Main
+public class Main {
+    public static void main(String[] args) {
+        Customer customer = new Customer("John");
+        Item item1 = new Item("Laptop", 1000);
+        Item item2 = new Item("Mouse", 20);
+        customer.addItemToCart(item1);
+        customer.addItemToCart(item2);
+        double totalPrice = customer.calculateTotalPrice();
+        System.out.println("Total price: " + totalPrice);
+    }
+}
+            </code></pre></div>
+            <p>Setelah refactoring, kelas Customer memiliki metode addItemToCart(Item item) yang berfungsi untuk menambahkan item ke keranjang belanja.
+                Ini mengurangi ketergantungan pada kelas ShoppingCart dan menghilangkan "Feature Envy", sehingga kode menjadi lebih bersih dan terorganisir.</p>
+        </div>
+        <div id="InappropriateIntimacy-section" class="section">
+            <div class="pembatas">
+                <hr>
+            </div>
+            <h2>Inappropriate Intimacy</h2>
+            <h3>Penjelasan</h3>
+            <p>"Inappropriate Intimacy" adalah sebuah code smell yang terjadi ketika dua kelas terlalu erat terkait atau terlalu sering berinteraksi satu
+                sama lain. Hal ini mengakibatkan kelas-kelas tersebut saling bergantung satu sama lain secara berlebihan, yang dapat menyulitkan pemeliharaan,
+                pengujian, dan perubahan kode di masa mendatang.</p>
+            <h3>Penanganan</h3>
+            <p>Mengidentifikasi ketergantungan yang berlebihan antara kelas-kelas.</p>
+            <p>Memindahkan logika bisnis yang sesuai ke kelas yang tepat, sehingga setiap kelas memiliki tanggung jawab yang jelas dan terisolasi.</p>
+            <p>Menggunakan prinsip-prinsip desain yang baik, seperti dependency injection, untuk mengurangi ketergantungan antar kelas.</p>
+            <h3>Contoh Kasus</h3>
+            <div class="code-block"><pre><code>
+public class Customer {
+    private ShoppingCart shoppingCart;
+
+    public Customer() {
+        this.shoppingCart = new ShoppingCart();
+    }
+
+    public void addItemToCart(Item item) {
+        this.shoppingCart.addItem(item);
+    }
+
+    public double calculateTotalPrice() {
+        return this.shoppingCart.calculateTotalPrice();
+    }
+
+    public ShoppingCart getShoppingCart() {
+        return shoppingCart;
+    }
+}
+
+public class ShoppingCart {
+    private List&lt;Item&gt; items;
+
+    public ShoppingCart() {
+        this.items = new ArrayList&lt;&gt;();
+    }
+
+    public void addItem(Item item) {
+        this.items.add(item);
+    }
+
+    public double calculateTotalPrice() {
+        double total = 0;
+        for (Item item : items) {
+            total += item.getPrice();
+        }
+        return total;
+    }
+}
+
+public class Item {
+    private double price;
+
+    public Item(double price) {
+        this.price = price;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+}                
+            </code></pre></div>
+            <p>Letak "Inappropriate Intimacy" pada kode di atas terjadi antara kelas Customer dan ShoppingCart. Kelas Customer memiliki akses langsung ke
+                atribut shoppingCart dan bahkan memiliki metode getShoppingCart() untuk mendapatkan instance dari ShoppingCart. Ini mengindikasikan bahwa
+                kelas Customer memiliki pengetahuan yang berlebihan tentang implementasi kelas ShoppingCart.</p>
+            <p>Code setelah di-refactor:</p>
+            <div class="code-block"><pre><code>
+public class Customer {
+    private ShoppingCart shoppingCart;
+
+    public Customer(ShoppingCart shoppingCart) {
+        this.shoppingCart = shoppingCart;
+    }
+
+    public void addItemToCart(Item item) {
+        this.shoppingCart.addItem(item);
+    }
+
+    public double calculateTotalPrice() {
+        return this.shoppingCart.calculateTotalPrice();
+    }
+}
+
+public class ShoppingCart {
+    private List&lt;Item&gt; items;
+
+    public ShoppingCart() {
+        this.items = new ArrayList&lt;&gt;();
+    }
+
+    public void addItem(Item item) {
+        this.items.add(item);
+    }
+
+    public double calculateTotalPrice() {
+        return items.stream().mapToDouble(Item::getPrice).sum();
+    }
+}
+
+public class Item {
+    private double price;
+
+    public Item(double price) {
+        this.price = price;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+}
+
+// Main
+public class Main {
+    public static void main(String[] args) {
+        ShoppingCart shoppingCart = new ShoppingCart();
+        Customer customer = new Customer(shoppingCart);
+        customer.addItemToCart(new Item(1000));
+        customer.addItemToCart(new Item(20));
+        double totalPrice = customer.calculateTotalPrice();
+        System.out.println("Total price: " + totalPrice);
+    }
+}                
+            </code></pre></div>
+            <p>Pada refactoring di atas, metode getShoppingCart() pada kelas Customer dihapus dan instance ShoppingCart disediakan saat pembuatan objek Customer.
+                Hal ini mengurangi ketergantungan antara kelas Customer dan ShoppingCart dan memperbaiki "Inappropriate Intimacy".</p>
+        </div>
+        <div id="MessageChains-section" class="section">
+            <div class="pembatas">
+                <hr>
+            </div>
+            <h2>Message Chains</h2>
+            <h3>Penjelasan</h3>
+            <p>"Message Chains" terjadi ketika pemanggilan metode berturut-turut dari objek yang berbeda terjadi secara berulang dalam sebuah rangkaian.
+                Ini dapat menunjukkan adanya ketergantungan yang kuat antara kelas-kelas tersebut, yang dapat membuat kode sulit dipahami dan rentan terhadap
+                perubahan.</p>
+            <h3>Penanganan</h3>
+            <p>
+                Hide Delegate: Sembunyikan delegasi dengan menyediakan metode di kelas klien yang mengembalikan hasil dari objek yang diminta,
+                daripada mengungkapkan objek aslinya.
+            </p>
+            <p>
+                Extract Method: Pindahkan logika yang digunakan dalam rangkaian pesan ke dalam metode terpisah di awal rantai untuk mengurangi panjangnya.
+            </p>
+            <p>
+                 Move Method: Pindahkan metode yang sering dipanggil ke kelas paling dekat dengan data yang diperlukan daripada mengirimkan pesan melalui rangkaian kelas.
+            </p>
+            <h3>Contoh Kasus</h3>
+            <div class="code-block"><pre><code>
+public class Customer {
+    private ShoppingCart shoppingCart;
+
+    public Customer() {
+        this.shoppingCart = new ShoppingCart();
+    }
+
+    public ShoppingCart getShoppingCart() {
+        return shoppingCart;
+    }
+}
+
+public class ShoppingCart {
+    private List&lt;Item&gt; items;
+
+    public ShoppingCart() {
+        this.items = new ArrayList&lt;&gt;();
+    }
+
+    public void addItem(Item item) {
+        this.items.add(item);
+    }
+
+    public List&lt;Item&gt; getItems() {
+        return items;
+    }
+}
+
+public class Item {
+    private double price;
+
+    public Item(double price) {
+        this.price = price;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+}
+
+// Main
+public class Main {
+    public static void main(String[] args) {
+        Customer customer = new Customer();
+        ShoppingCart shoppingCart = customer.getShoppingCart();
+        List&lt;item&gt; items = shoppingCart.getItems();
+        for (Item item : items) {
+            System.out.println("Item price: " + item.getPrice());
+        }
+    }
+}                
+            </code></pre></div>
+            <p>Letak "Message Chains" pada kode di atas terjadi pada bagian Main di mana terdapat rangkaian pemanggilan metode getShoppingCart() dan getItems().
+                Hal ini menunjukkan ketergantungan yang kuat antara kelas Customer, ShoppingCart, dan Item, yang membuat kode sulit dipahami.</p>
+            <p>Code setelah di-refactor:</p>
+            <div class="code-block"><pre><code>
+public class Customer {
+    private ShoppingCart shoppingCart;
+
+    public Customer() {
+        this.shoppingCart = new ShoppingCart();
+    }
+
+    public ShoppingCart getShoppingCart() {
+        return shoppingCart;
+    }
+}
+
+public class ShoppingCart {
+    private List&lt;Item&gt; items;
+
+    public ShoppingCart() {
+        this.items = new ArrayList&lt;&gt;();
+    }
+
+    public void addItem(Item item) {
+        this.items.add(item);
+    }
+
+    public void displayItems() {
+        for (Item item : items) {
+            System.out.println("Item price: " + item.getPrice());
+        }
+    }
+}
+
+public class Item {
+    private double price;
+
+    public Item(double price) {
+        this.price = price;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+}
+
+// Main
+public class Main {
+    public static void main(String[] args) {
+        Customer customer = new Customer();
+        ShoppingCart shoppingCart = customer.getShoppingCart();
+        shoppingCart.displayItems();
+    }
+}                
+            </code></pre></div>
+            <p>Pada refactoring di atas, rangkaian pemanggilan metode getShoppingCart() dan getItems() diganti dengan pemanggilan langsung metode displayItems() dari objek ShoppingCart.
+                Hal ini mengurangi panjang dan kompleksitas rangkaian pesan dan memperbaiki "Message Chains".</p>
+        </div>
+        <div id="MiddleMan-section" class="section">
+            <div class="pembatas">
+                <hr>
+            </div>
+            <h2>Middle Man</h2>
+            <h3>Penjelasan</h3>
+            <p>"Middle Man" terjadi ketika sebuah kelas hanya menyediakan metode-metode yang meneruskan pemanggilan ke kelas lain tanpa menambahkan nilai tambah atau logika bisnis tambahan.
+                Hal ini sering kali menghasilkan kelas yang tidak perlu dan menyebabkan kompleksitas yang tidak perlu dalam kode.</p>
+            <h3>Penanganan</h3>
+            <p>Menghapus kelas "Middle Man" dan mengarahkan pemanggilan langsung ke kelas yang dituju.</p>
+            <p>Jika ada logika bisnis yang memang perlu disimpan, pindahkan logika tersebut ke kelas yang sesuai agar setiap kelas bertanggung jawab atas tugasnya sendiri.</p>
+            <h3>Contoh Kasus</h3>
+            <div class="code-block"><pre><code>
+public class OrderProcessor {
+    private OrderService orderService;
+
+    public OrderProcessor() {
+        this.orderService = new OrderService();
+    }
+
+    public void processOrder(Order order) {
+        orderService.process(order);
+    }
+}
+
+public class OrderService {
+    public void process(Order order) {
+        // Logika untuk memproses pesanan
+    }
+}
+
+public class Order {
+    // Detail order
+}                
+            </code></pre></div>
+            <p>Letak "Middle Man" pada kode di atas terdapat pada kelas OrderProcessor. Kelas ini hanya meneruskan pemanggilan metode processOrder
+                ke OrderService tanpa menambahkan logika bisnis tambahan.</p>
+        </div>
+    </div>
+</body>
+</html>

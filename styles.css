@@ -1,0 +1,104 @@
+*, html {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+    color: rgb(35, 35, 35);
+}
+
+nav {
+    background-color: brown;
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, .2);
+}
+
+div a {
+    text-decoration: none;
+    color: white;
+    padding-bottom : 5px;
+    margin: 20px;
+}
+
+nav ul {
+    display: flex;
+    align-items: center;
+    list-style: none;
+}
+
+nav ul li a {
+    text-decoration: none;
+    color: white;
+    padding-bottom : 5px;
+    margin: 20px;
+    transition: all;
+    transition-duration: 300ms;
+    border-bottom: 4px solid brown;
+}
+
+nav ul li a:hover {
+    border-bottom: 1px solid white;
+}
+
+body {
+    background-color: #ededed;
+}
+
+.isi {
+    margin: auto;
+    width: 60%;
+    padding: 50px 30px 100px 50px;
+}
+
+.pembatas {
+    padding: 25px 0 25px 0;
+    width: 95%;
+}
+
+p {
+    margin: 15px 0 15px 0;
+    line-height: 20px;
+    width: 95%;
+}
+
+h1 {
+    padding: 15px 0 0 0;
+    color: rgb(147, 38, 38);
+}
+
+h2 {
+    padding: 15px 0 10px 0;
+    color: rgb(147, 38, 38);
+}
+
+h3 {
+    padding: 20px 0 10px 0;
+    color: rgb(167, 43, 43);
+}
+
+.code-block {
+    background-color: #dadada;
+    padding: 10px 40px 10px 40px;
+    width: 95%;
+    border-radius: 10px;
+    
+}
+
+code {
+    color: rgb(72, 72, 72);
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    font-size: 14px;
+}
+
+#author {
+    font-size: 12px;
+    margin: 0 0 10px 5px;
+    color: rgb(91, 91, 91);
+}
+
+
+
